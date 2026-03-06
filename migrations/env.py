@@ -5,7 +5,7 @@ from sqlalchemy import engine_from_config, pool
 
 from app import models  # noqa: F401
 from app.core import Settings
-from app.db import table_registry
+from app.db.database import table_registry
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
