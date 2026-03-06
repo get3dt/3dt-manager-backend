@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import func
 from sqlalchemy.orm import Mapped, mapped_as_dataclass, mapped_column
 
-from app.db import table_registry
+from app.db.database import table_registry
 
 
 @mapped_as_dataclass(table_registry)
