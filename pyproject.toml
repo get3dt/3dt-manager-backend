@@ -21,7 +21,7 @@ packages = [{include = "app"}]
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.15.1"
 pytest = "^9.0.2"
-pytest-cov = "^7.0.0"
+pytest-cov = "^7.1.0"
 taskipy = "^1.14.1"
 faker = "^40.4.0"
 
