@@ -1,7 +1,7 @@
 from http import HTTPStatus
-from sqlite3 import IntegrityError
 
 from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models import User
