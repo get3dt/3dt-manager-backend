@@ -4,11 +4,12 @@ from datetime import datetime
 import pytest
 from faker import Faker
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, event
+from sqlalchemy import StaticPool, create_engine, event
 from sqlalchemy.orm import Session
 
-from app.db import table_registry
+from app.db import get_session, table_registry
 from app.main import app
+from app.models.user_model import User
 
 
 @contextmanager
@@ -33,13 +34,24 @@ def faker():
 
 
 @pytest.fixture
-def client():
-    return TestClient(app)
+def client(session):
+    def get_session_override():
+        return session
+
+    with TestClient(app) as client:
+        app.dependency_overrides[get_session] = get_session_override
+        yield client
+
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture
 def session():
-    engine = create_engine('sqlite:///:memory:')
+    engine = create_engine(
+        'sqlite:///:memory:',
+        connect_args={'check_same_thread': False},
+        poolclass=StaticPool,
+    )
     table_registry.metadata.create_all(engine)
 
     with Session(engine) as session:
@@ -52,3 +64,13 @@ def session():
 @pytest.fixture
 def mock_db_time():
     return _mock_db_time
+
+
+@pytest.fixture
+def user(session):
+    user = User(username='Teste', email='teste@test.com', password='testtest')
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+
+    return user
