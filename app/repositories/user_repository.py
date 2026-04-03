@@ -11,9 +11,7 @@ def get_user_by_username_or_email(
     session: Session, username: str, email: str
 ) -> User | None:
     return session.scalar(
-        select(User).where(
-            (User.username == username) | (User.email == email)
-        )
+        select(User).where((User.username == username) | (User.email == email))
     )
 
 
@@ -26,7 +24,9 @@ def get_users(session: Session, skip: int = 0, limit: int = 100) -> List[User]:
 
 
 def create_user(session: Session, user: UserRequest) -> User:
-    db_user = User(username=user.username, password=user.password, email=user.email)
+    db_user = User(
+        username=user.username, password=user.password, email=user.email
+    )
     session.add(db_user)
     session.commit()
     session.refresh(db_user)
