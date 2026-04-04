@@ -4,6 +4,7 @@ from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core import get_password_hash
 from app.models import User
 from app.repositories import get_user_by_id, update_user
 from app.schemas import UserRequest
@@ -20,6 +21,9 @@ def update_user_service(
         )
 
     try:
+        hashed_password = get_password_hash(user.password)
+        db_user.password = hashed_password
+
         return update_user(session, db_user, user)
     except IntegrityError:
         raise HTTPException(
