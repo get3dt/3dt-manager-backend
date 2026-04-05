@@ -94,7 +94,28 @@ def test_get_users_respects_limit(client, faker, session):
     assert len(response.json()) == 2
 
 
-def test_update_user_returns_200_with_updated_data(client, user, faker):
+def test_update_user_returns_200_with_updated_data(client, user, token, faker):
+    new_username = faker.user_name()
+    new_email = faker.email()
+
+    response = client.put(
+        f'/users/{user.id}',
+        headers={'Authorization': f'Bearer {token}'},
+        json={
+            'username': new_username,
+            'email': new_email,
+            'password': faker.password(),
+        },
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    body = response.json()
+    assert body['id'] == user.id
+    assert body['username'] == new_username
+    assert body['email'] == new_email
+
+
+def test_update_user_returns_401_without_token(client, user, faker):
     response = client.put(
         f'/users/{user.id}',
         json={
@@ -104,25 +125,12 @@ def test_update_user_returns_200_with_updated_data(client, user, faker):
         },
     )
 
-    assert response.status_code == HTTPStatus.OK
-    assert response.json()['id'] == user.id
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
 
 
-def test_update_user_returns_404_when_not_found(client, faker):
-    response = client.put(
-        '/users/999',
-        json={
-            'username': faker.user_name(),
-            'email': faker.email(),
-            'password': faker.password(),
-        },
-    )
-
-    assert response.status_code == HTTPStatus.NOT_FOUND
-    assert response.json()['detail'] == 'User not found'
-
-
-def test_update_user_returns_409_on_duplicate_data(client, user, faker):
+def test_update_user_returns_403_when_updating_another_user(
+    client, user, token, faker
+):
     second = client.post(
         '/users/',
         json={
@@ -135,6 +143,42 @@ def test_update_user_returns_409_on_duplicate_data(client, user, faker):
 
     response = client.put(
         f'/users/{second_id}',
+        headers={'Authorization': f'Bearer {token}'},
+        json={
+            'username': faker.user_name(),
+            'email': faker.email(),
+            'password': faker.password(),
+        },
+    )
+
+    assert response.status_code == HTTPStatus.FORBIDDEN
+    assert response.json()['detail'] == 'Not enough permissions'
+
+
+def test_update_user_returns_409_on_duplicate_data(client, user, faker):
+    second_password = faker.password()
+    second_email = faker.email()
+    second = client.post(
+        '/users/',
+        json={
+            'username': faker.user_name(),
+            'email': second_email,
+            'password': second_password,
+        },
+    )
+    second_id = second.json()['id']
+
+    second_token = client.post(
+        '/auth/token',
+        data={
+            'username': second_email,
+            'password': second_password,
+        },
+    ).json()['access_token']
+
+    response = client.put(
+        f'/users/{second_id}',
+        headers={'Authorization': f'Bearer {second_token}'},
         json={
             'username': user.username,
             'email': user.email,
@@ -146,15 +190,39 @@ def test_update_user_returns_409_on_duplicate_data(client, user, faker):
     assert response.json()['detail'] == 'Username or Email already exists'
 
 
-def test_delete_user_returns_200_with_message(client, user):
-    response = client.delete(f'/users/{user.id}')
+def test_delete_user_returns_200_with_message(client, user, token):
+    response = client.delete(
+        f'/users/{user.id}',
+        headers={'Authorization': f'Bearer {token}'},
+    )
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'message': 'User deleted'}
 
 
-def test_delete_user_returns_404_when_not_found(client):
-    response = client.delete('/users/999')
+def test_delete_user_returns_401_without_token(client, user):
+    response = client.delete(f'/users/{user.id}')
 
-    assert response.status_code == HTTPStatus.NOT_FOUND
-    assert response.json()['detail'] == 'User not found'
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
+
+
+def test_delete_user_returns_403_when_deleting_another_user(
+    client, user, token, faker
+):
+    second = client.post(
+        '/users/',
+        json={
+            'username': faker.user_name(),
+            'email': faker.email(),
+            'password': faker.password(),
+        },
+    )
+    second_id = second.json()['id']
+
+    response = client.delete(
+        f'/users/{second_id}',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+
+    assert response.status_code == HTTPStatus.FORBIDDEN
+    assert response.json()['detail'] == 'Not enough permissions'
