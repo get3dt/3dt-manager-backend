@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.core import get_password_hash
+from app.core.security import get_password_hash
 from app.models import User
 from app.repositories import get_user_by_id, update_user
 from app.schemas import UserRequest
