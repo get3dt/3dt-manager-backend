@@ -3,6 +3,7 @@ from http import HTTPStatus
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from app.core.security import get_password_hash
 from app.models import User
 from app.repositories import create_user, get_user_by_username_or_email
 from app.schemas import UserRequest
@@ -22,5 +23,8 @@ def create_user_service(user: UserRequest, session: Session) -> User:
                 status_code=HTTPStatus.CONFLICT,
                 detail='Email already exists',
             )
+
+    hashed_password = get_password_hash(user.password)
+    user.password = hashed_password
 
     return create_user(session, user)

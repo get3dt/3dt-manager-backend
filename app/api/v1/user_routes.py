@@ -1,10 +1,12 @@
 from http import HTTPStatus
 from typing import List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.core.security import get_current_user
 from app.db.database import get_session
+from app.models import User
 from app.schemas import UserRequest, UserResponse
 from app.schemas.user_schema import Message
 from app.services import (
@@ -31,11 +33,27 @@ def get_users(
 
 @router.put('/{user_id}', response_model=UserResponse)
 def update_user(
-    user_id: int, user: UserRequest, session: Session = Depends(get_session)
+    user_id: int,
+    user: UserRequest,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
 ):
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions'
+        )
+
     return update_user_service(user_id, user, session)
 
 
 @router.delete('/{user_id}', response_model=Message)
-def delete_user(user_id: int, session: Session = Depends(get_session)):
+def delete_user(
+    user_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions'
+        )
     return delete_user_service(user_id, session)

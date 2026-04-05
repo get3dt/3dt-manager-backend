@@ -1,11 +1,12 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, registry
 
-from app.core import Settings
+from app.core.settings import Settings
 
+settings = Settings()
 table_registry = registry()
 
-engine = create_engine(Settings().DATABASE_URL)
+engine = create_engine(settings.DATABASE_URL)
 
 
 def get_session():
