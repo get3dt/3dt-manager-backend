@@ -19,6 +19,10 @@ def get_user_by_id(session: Session, user_id: int) -> User | None:
     return session.scalar(select(User).where(User.id == user_id))
 
 
+def get_user_by_email(session: Session, email: str) -> User | None:
+    return session.scalar(select(User).where(User.email == email))
+
+
 def get_users(session: Session, skip: int = 0, limit: int = 100) -> List[User]:
     return session.scalars(select(User).offset(skip).limit(limit)).all()
 
