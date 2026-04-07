@@ -3,7 +3,7 @@ from http import HTTPStatus
 import pytest
 from fastapi import HTTPException
 
-from app.schemas import UserRequest
+from app.schemas import FilterPage, UserRequest
 from app.services.users.create_user import create_user_service
 from app.services.users.delete_user import delete_user_service
 from app.services.users.get_users import get_users_service
@@ -55,14 +55,13 @@ def test_create_user_service_raises_conflict_on_duplicate_email(session, user):
 
 
 def test_get_users_service_returns_list(session, user):
-    result = get_users_service(session)
-
+    result = get_users_service(session, FilterPage())
     assert isinstance(result, list)
     assert len(result) == 1
 
 
 def test_get_users_service_returns_empty_list_when_no_users(session):
-    result = get_users_service(session)
+    result = get_users_service(session, FilterPage())
 
     assert result == []
 
