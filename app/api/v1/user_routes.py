@@ -31,7 +31,6 @@ def create_user(user: UserRequest, session: Session):
 def get_users(
     session: Session,
     filter_users: Annotated[FilterPage, Query()],
-    current_user: CurrentUser,
 ):
     return get_users_service(session, filter_users)
 
