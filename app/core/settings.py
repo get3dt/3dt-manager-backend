@@ -1,3 +1,4 @@
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -6,7 +7,7 @@ class Settings(BaseSettings):
         env_file='.env', env_file_encoding='utf-8'
     )
 
-    DATABASE_URL: str
-    JWT_SECRET_KEY: str
-    JWT_ALGORITHM: str
-    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int
+    DATABASE_URL: str = Field(init=False)
+    JWT_SECRET_KEY: str = Field(init=False)
+    JWT_ALGORITHM: str = Field(init=False)
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(init=False)
