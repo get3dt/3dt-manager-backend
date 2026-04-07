@@ -79,7 +79,7 @@ def test_get_users_respects_limit(session, faker):
     assert len(result) == 2
 
 
-def test_get_users_respects_skip(session, faker):
+def test_get_users_respects_offset(session, faker):
     for _ in range(3):
         session.add(
             User(
@@ -90,7 +90,7 @@ def test_get_users_respects_skip(session, faker):
         )
     session.commit()
 
-    result = get_users(session, skip=2)
+    result = get_users(session, offset=2)
 
     assert len(result) == 1
 
